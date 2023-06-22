@@ -16,12 +16,21 @@
     <label for="wordsPerPage">Words per page:</label>
     <input type="text" id="wordsPerPage" name="wordsPerPage" required minlength="1" maxlength="8" size="10">
     <p></p>
+
+
+    <label for="srcEncoding">Choose source encoding:</label>
+    <select id="srcEncoding" name="srcEncoding">
+      <option value="utf8">UTF-8</option>
+      <option value="windows1251">Windows1251</option>
+    </select>
+
     <label for="srcFile">Choose source file:</label>
     <input type="file" id="srcFile" name="srcFile" accept="text/plain">
+    <button id="downloadButton">Download as ZIP</button>
 
-    <!-- <script src="./target/scala-3.2.2/scalajs-bundler/main/app-fastopt-bundle.js"></script> -->
+    <script src="./target/scala-3.2.2/scalajs-bundler/main/app-fastopt-bundle.js"></script>
     <!-- <script src="./target/scala-3.2.2/scalajs-bundler/main/app-opt-bundle.js"></script>  -->
-    <script src="./app-opt-bundle.js"></script>    
+    <!-- <script src="./app-opt-bundle.js"></script>     -->
 
 </body>
 
