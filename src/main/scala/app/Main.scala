@@ -19,44 +19,55 @@ import java.nio.charset.StandardCharsets
 import scala.scalajs.js.typedarray.ArrayBuffer
 import scala.util.Failure
 import scala.util.Success
+import org.scalajs.dom.HTMLButtonElement
+import scala.concurrent.Future
 
 implicit val ec: scala.concurrent.ExecutionContext = scala.concurrent.ExecutionContext.global
 
 object Main {
 
-  def registerFileProcessor(): Unit = {
-    PageModel.setWordsPerPage(1100)
-    
-    val fileInput = dom.document.getElementById("srcFile").asInstanceOf[dom.html.Input]
+  def generateZip(content: String): Future[Blob] = {
+    val splitter = Splitter(PageModel.getWordsPerPage())
+    val pieces = splitter.splitText(content)
+    val zip = JSZip()
+    for (i <- 0 until pieces.length) {
+      val pieceBytes = bomFileBytes(pieces(i))
+      zip.file(s"chapter${paddedInt(i + 1)}.txt", Interop.toJsUint8Array(pieceBytes))
+    }
+    val opts = JSZipGeneratorOptions[blob]()
+    opts.setType(typings.jszip.jszipStrings.blob)
+    zip.generateAsync_blob(opts).toFuture
+  }
 
-    fileInput.onchange = e => {
-      val reader = new dom.FileReader()
-      reader.readAsText(fileInput.files(0))
-      reader.onload = event => {
-        val contents = reader.result.asInstanceOf[String]
-        val splitter = Splitter(PageModel.getWordsPerPage())
-        val pieces = splitter.splitText(contents)
-        val zip = JSZip()
-        for (i <- 0 until pieces.length) {
-          val pieceBytes = bomFileBytes(pieces(i))
-          zip.file(s"chapter${paddedInt(i + 1)}.txt", Interop.toJsUint8Array(pieceBytes))
-        }
-        val opts = JSZipGeneratorOptions[blob]()
-        opts.setType(typings.jszip.jszipStrings.blob)
-        val blob = zip.generateAsync_blob(opts).toFuture
-        blob.onComplete {
-          case Success(sblob) => 
-            FileDownloader.download(newName(fileInput.files(0).name), sblob)
-          case Failure(t) => 
-            t.printStackTrace()
-            alert("An error has occurred: " + t.getMessage)
-        }
+  def registerFileProcessor(): Unit = {
+    SelfTest.runTests()
+    PageModel.setWordsPerPage(1100)
+  }
+
+  def onDownloadButtonClicked(): Unit = {
+    val fileInput = dom.document.getElementById("srcFile").asInstanceOf[dom.html.Input]
+    val reader = new dom.FileReader()
+    if (fileInput.files.length == 0) {
+      alert("Error: no files chosen")
+      return
+    }
+    reader.readAsText(fileInput.files(0), PageModel.getSrcEncoding().canonicalStr())
+    reader.onload = event => {
+      val blobFuture = generateZip(reader.result.asInstanceOf[String])
+      blobFuture.onComplete {
+        case Success(sblob) => 
+          FileDownloader.download(newName(fileInput.files(0).name), sblob)
+        case Failure(t) => 
+          t.printStackTrace()
+          alert("An error has occurred: " + t.getMessage)
       }
     }
   }
 
   def main(args: Array[String]): Unit = {
     window.addEventListener("load", (e) => registerFileProcessor(), false);
+    val downloadButton = document.getElementById("downloadButton").asInstanceOf[HTMLButtonElement]
+    downloadButton.onclick = (_) => onDownloadButtonClicked()
   }
 
   private def paddedInt(input: Int): String = {
