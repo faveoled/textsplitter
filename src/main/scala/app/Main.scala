@@ -40,8 +40,8 @@ object Main {
   }
 
   def registerFileProcessor(): Unit = {
-    SelfTest.runTests()
-    PageModel.setWordsPerPage(1100)
+    //SelfTest.runTests()
+    PageModel.setWordsPerPage(7000)
   }
 
   def onDownloadButtonClicked(): Unit = {

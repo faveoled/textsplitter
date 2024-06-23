@@ -3,7 +3,7 @@ enablePlugins(ScalablyTypedConverterPlugin)
 enablePlugins(ScalaJSBundlerPlugin)
 
 name := "app"
-scalaVersion := "3.2.2"
+scalaVersion := "3.3.3"
 externalNpm := baseDirectory.value
 
 // This is an application with a main method
